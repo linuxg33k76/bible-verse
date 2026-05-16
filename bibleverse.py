@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """
-Bible Verse of the Day - fetches and displays a random verse
+Bible Verse CLI- fetches and displays a random verse from the web or from a local database as specified by the user.
+Usage: 
+
+bibleverse.py <translation>
+
+translation can be one of the following: WEB, KJV, AKJV, ASV, ACV
+If no translation is specified, the web version is used.
 """
 
 
@@ -34,14 +40,29 @@ except ImportError:
         print("Please install it manually by running: pip install sqlite3", file=sys.stderr)
         sys.exit(1)
 
+# Main Program
+
+def print_verse(book, chapter, verse, text):
+    """Prints the verse to the console"""
+    width = int(shutil.get_terminal_size().columns)
+    text_width = len(text)
+    if text_width < width:
+        width = text_width + 2
+    border = "=" * width
+    print(f"\n{border}")
+    print(f'"{text}"')
+    print(f"- {book} {chapter}:{verse}")
+    print(f'{border}\n')
+
 def get_random_verse_from_db(translation):
     # Connect to your local SQLite database
     conn = sqlite3.connect(f"data/{translation}.db")
     cursor = conn.cursor()
     
     # SQL query to grab exactly one random verse
-    # (Note: table and column names will depend on the specific SQLite file you download)
-    # query = "SELECT book_id, chapter, verse, text FROM kjv_verses ORDER BY RANDOM() LIMIT 1;"
+    # (Note: table and column names will depend on the specific SQLite database)
+    # This program uses databases provided by https://github.com/scrollmapper/sqlite-bible-database
+    
     query = f"SELECT b.name AS book_name,v.chapter,v.verse,v.text FROM {translation}_verses v JOIN {translation}_books b ON v.book_id = b.id ORDER BY RANDOM() LIMIT 1;"
     
     try:
@@ -49,10 +70,7 @@ def get_random_verse_from_db(translation):
         result = cursor.fetchone()
         if result:
             book, chapter, verse, text = result
-            print(f'\n{border}')
-            print(f'"{text}"')
-            print(f"- {book} {chapter}:{verse}")
-            print(f'{border}\n')
+            print_verse(book, chapter, verse, text)
             
     except sqlite3.Error as e:
         print(f"Database error: {e}")
@@ -62,7 +80,7 @@ def get_random_verse_from_db(translation):
 def get_random_web_verse():
     # The /random endpoint automatically pulls a random verse
     # "web" stands for World English Bible, but you can use "kjv" or others
-    url = "https://bible-api.com/data/web/random"
+    url = "https://bible-api.com/data/web/random1"
     
     try:
         response = requests.get(url)
@@ -75,17 +93,13 @@ def get_random_web_verse():
         verse = data['random_verse']['verse']
         text = data['random_verse']['text'].strip()
         
-        print("\n" + border)
-        print(f'"{text}"')
-        print(f"- {book} {chapter}:{verse}")
-        print(border + "\n")
+        print_verse(book, chapter, verse, text)
         
     except requests.exceptions.RequestException as e:
         print(f"Error fetching verse: {e}")
-
-        # Look up from internal database of verses
-
-        get_random_verse_from_db()
+        print("Please try again later.  The server may be down.  ")
+        print("Alternatively, you can use one of the local databases by specifying a translation.")    
+        sys.exit(1)
 
 if __name__ == "__main__":
 
@@ -107,15 +121,15 @@ if __name__ == "__main__":
             get_random_web_verse()
             sys.exit(0)
         else:
-            print(f"\n{border}")
-            print(f"\tWARNING: Unknown translation: {sys.argv[1]}.  Valid translations are: {', '.join(avail_versions)}.  Defaulting to web lookup...")
+ 
+            print(f"\nWARNING: Unknown translation: {sys.argv[1]}.\n")
+            print(f"Valid translations are: {', '.join(avail_versions)}.  Defaulting to web lookup.\n")
             get_random_web_verse()
             sys.exit(0)
         
     else:
-        print(f"\n{border}")
-        print(f"You did not specify a translation.  Command syntax: {sys.argv[0]} [translation]")
+        print("\nWARNING: No translation specified.\n")
+        print(f"Command syntax: {sys.argv[0]} [translation]")
         print(f"Please specify a translation.  Valid translations are: {', '.join(avail_versions)}")
-        print(f"Example: {sys.argv[0]} KJV")
-        print(f'{border}\n')
+        print(f"Example: {sys.argv[0]} KJV\n")
         sys.exit(0)    
