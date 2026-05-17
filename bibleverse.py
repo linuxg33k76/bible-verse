@@ -42,6 +42,9 @@ except ImportError:
 
 # Main Program
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+DATA_DIR = os.path.join(SCRIPT_DIR, "data")
+
 def print_verse(book, chapter, verse, text):
     """Prints the verse to the console"""
     width = int(shutil.get_terminal_size().columns)
@@ -56,7 +59,7 @@ def print_verse(book, chapter, verse, text):
 
 def get_random_verse_from_db(translation):
     # Connect to your local SQLite database
-    conn = sqlite3.connect(f"data/{translation}.db")
+    conn = sqlite3.connect(os.path.join(DATA_DIR, f"{translation}.db"))
     cursor = conn.cursor()
     
     # SQL query to grab exactly one random verse
@@ -80,7 +83,7 @@ def get_random_verse_from_db(translation):
 def get_random_web_verse():
     # The /random endpoint automatically pulls a random verse
     # "web" stands for World English Bible, but you can use "kjv" or others
-    url = "https://bible-api.com/data/web/random1"
+    url = "https://bible-api.com/data/web/random"
     
     try:
         response = requests.get(url)
@@ -108,7 +111,7 @@ if __name__ == "__main__":
     border = "=" * width
     # check to see if translation exists in data directory
     avail_versions = []
-    for db_file in os.listdir("data"):
+    for db_file in os.listdir(DATA_DIR):
         if db_file.endswith(".db"):
             avail_versions.append(db_file.replace(".db", "").upper())
 
