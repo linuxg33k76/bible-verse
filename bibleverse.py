@@ -64,7 +64,7 @@ def get_random_verse_from_db(translation):
     
     # SQL query to grab exactly one random verse
     # (Note: table and column names will depend on the specific SQLite database)
-    # This program uses databases provided by https://github.com/scrollmapper/sqlite-bible-database
+    # This program uses databases provided by https://github.com/scrollmapper/bible_databases
     
     query = f"SELECT b.name AS book_name,v.chapter,v.verse,v.text FROM {translation}_verses v JOIN {translation}_books b ON v.book_id = b.id ORDER BY RANDOM() LIMIT 1;"
     
