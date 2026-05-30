@@ -1,25 +1,45 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Define the virtual environment directory name
-VENV_DIR="venv"
-CURRENT_DIR=$(pwd)
-SOURCE_PATH="$CURRENT_DIR/$VENV_DIR/bin/activate"
+# Determine the directory containing this script (resolves symlinks)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Define the command to run the Python application
-CMD="bibleverse.py"
+# Paths for venv and script
+VENV_DIR="$SCRIPT_DIR/venv"
+ACTIVATE="$VENV_DIR/bin/activate"
+PY_BIN="$VENV_DIR/bin/python"
+PIP_BIN="$VENV_DIR/bin/pip"
+PY_SCRIPT="$SCRIPT_DIR/bibleverse.py"
 
-# 1. Check if the virtual environment exists, create it if not
-if [ ! -d "$VENV_DIR" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv $VENV_DIR
-fi
+# # Create virtualenv if missing
+# if [ ! -d "$VENV_DIR" ]; then
+#     echo "Creating virtual environment in $VENV_DIR..."
+#     python3 -m venv "$VENV_DIR"
+# fi
 
-# 2. Activate the virtual environment
-source $SOURCE_PATH
-pip list -q
+# # Activate venv if possible (sourced into this shell); if not, we'll call the venv python directly.
+# if [ -f "$ACTIVATE" ]; then
+#     # shellcheck disable=SC1091
+#     source "$ACTIVATE"
+# else
+#     echo "Warning: activate script not found; using venv python directly: $PY_BIN"
+# fi
 
-# 3. Install or update dependencies
-pip install -r requirements.txt -q
+# # Ensure pip is available and upgrade quietly
+# if [ -x "$PIP_BIN" ]; then
+#     "$PIP_BIN" install --upgrade pip -q || true
+# fi
 
-# 4. Run the Python application
-"$CURRENT_DIR/$VENV_DIR/bin/python" $CMD $1
+# # Install requirements if present
+# if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
+#     if [ -x "$PIP_BIN" ]; then
+#         "$PIP_BIN" install -r "$SCRIPT_DIR/requirements.txt" -q
+#     else
+#         echo "pip not found in venv; attempting to use system pip to install requirements"
+#         pip install -r "$SCRIPT_DIR/requirements.txt" -q || true
+#     fi
+# fi
+
+# Execute the Python script with venv python so this works regardless of PWD
+# exec "$PY_BIN" "$PY_SCRIPT" "$@"
+exec "$PY_SCRIPT" "$@"
