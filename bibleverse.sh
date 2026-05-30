@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Command
+CMD="bibleverse.py"
+
 # Determine the directory containing this script (resolves symlinks)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -9,7 +12,7 @@ VENV_DIR="$SCRIPT_DIR/venv"
 ACTIVATE="$VENV_DIR/bin/activate"
 PY_BIN="$VENV_DIR/bin/python"
 PIP_BIN="$VENV_DIR/bin/pip"
-PY_SCRIPT="$SCRIPT_DIR/bibleverse.py"
+PY_SCRIPT="$SCRIPT_DIR/$CMD"
 
 # Create virtualenv if missing
 if [ ! -d "$VENV_DIR" ]; then
